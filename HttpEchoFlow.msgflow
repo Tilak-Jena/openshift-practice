@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<messageFlow name="HttpEchoFlow" xmlns="http://www.ibm.com/Integration/Node">
+  <nodes>
+    <httpInputNode name="HTTP Input" uri="/echo" method="GET"/>
+    <computeNode name="Compute">
+      <computeExpression><![CDATA[
+        SET OutputRoot.Properties = InputRoot.Properties;
+        SET OutputRoot.HTTPResponseHeader."Content-Type" = 'text/plain';
+        SET OutputRoot.BLOB = 'Hello from ACE!';
+      ]]></computeExpression>
+    </computeNode>
+    <httpReplyNode name="HTTP Reply"/>
+  </nodes>
+  <connections>
+    <connection fromNode="HTTP Input" toNode="Compute"/>
+    <connection fromNode="Compute" toNode="HTTP Reply"/>
+  </connections>
+</messageFlow>

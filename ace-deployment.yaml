@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ace-bar-config
+data:
+  flows.bar: |
+    # Placeholder BAR content
+    # Normally you’d build this BAR with mqsipackagebar from ACE Toolkit.
+    # For demo purposes, ACE will mount this BAR and deploy it.
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ace-secrets
+type: Opaque
+stringData:
+  http-username: demo
+  http-password: demopass
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ace-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ace-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ace-echo
+  template:
+    metadata:
+      labels:
+        app: ace-echo
+    spec:
+      containers:
+      - name: ace
+        image: ibmcom/ace-server:latest
+        ports:
+        - containerPort: 7800
+        env:
+        - name: LICENSE
+          value: accept
+        - name: BAR_FILE
+          value: /home/aceuser/config/flows.bar
+        - name: HTTP_USER
+          valueFrom:
+            secretKeyRef:
+              name: ace-secrets
+              key: http-username
+        - name: HTTP_PASS
+          valueFrom:
+            secretKeyRef:
+              name: ace-secrets
+              key: http-password
+        volumeMounts:
+        - name: ace-storage
+          mountPath: /home/aceuser/ace-server
+        - name: ace-bar
+          mountPath: /home/aceuser/config
+      volumes:
+      - name: ace-storage
+        persistentVolumeClaim:
+          claimName: ace-pvc
+      - name: ace-bar
+        configMap:
+          name: ace-bar-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ace-echo-service
+spec:
+  selector:
+    app: ace-echo
+  ports:
+    - protocol: TCP
+      port: 7800
+      targetPort: 7800

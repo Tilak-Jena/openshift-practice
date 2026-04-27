@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ace-http-echo
+  labels:
+    app: ace-http-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ace-http-echo
+  template:
+    metadata:
+      labels:
+        app: ace-http-echo
+    spec:
+      containers:
+      - name: ace-server
+        image: icr.io/appconnect/ace-server:latest
+        ports:
+        - containerPort: 7800   # ACE admin port
+        - containerPort: 7600   # HTTP Input default port
+        volumeMounts:
+        - name: bar-volume
+          mountPath: /home/aceuser/ace-server/run/barfiles
+      volumes:
+      - name: bar-volume
+        configMap:
+          name: ace-bar-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ace-http-echo-svc
+spec:
+  selector:
+    app: ace-http-echo
+  ports:
+  - name: http
+    port: 80
+    targetPort: 7600
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: ace-http-echo-route
+spec:
+  to:
+    kind: Service
+    name: ace-http-echo-svc
+  port:
+    targetPort: http

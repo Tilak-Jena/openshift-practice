@@ -1,0 +1,109 @@
+Here’s a step‑by‑step annotated version of the ACE deployment YAML, with comments explaining each line so you can learn by reading it like a tutorial:
+
+# -------------------------------
+# 1. ConfigMap: stores non-sensitive configuration data
+# -------------------------------
+apiVersion: v1              # API version for ConfigMap
+kind: ConfigMap             # Resource type is ConfigMap
+metadata:
+  name: ace-bar-config      # Name of this ConfigMap
+data:
+  flows.bar: |              # Key/value pair; here we embed BAR file content
+    # Placeholder BAR content
+    # Normally you’d build this BAR with ACE Toolkit
+    # and package your HTTP echo flow here.
+
+---
+# -------------------------------
+# 2. Secret: stores sensitive data like usernames/passwords
+# -------------------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ace-secrets         # Name of this Secret
+type: Opaque                # Generic secret type
+stringData:                 # Key/value pairs stored securely
+  http-username: demo
+  http-password: demopass
+
+---
+# -------------------------------
+# 3. PersistentVolumeClaim (PVC): requests storage from cluster
+# -------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ace-pvc             # Name of this PVC
+spec:
+  accessModes:
+    - ReadWriteOnce         # Pod can read/write this volume
+  resources:
+    requests:
+      storage: 2Gi          # Request 2 GB of storage
+
+---
+# -------------------------------
+# 4. Deployment: defines how ACE server pods run
+# -------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ace-echo            # Name of this Deployment
+spec:
+  replicas: 1               # Run 1 pod
+  selector:
+    matchLabels:
+      app: ace-echo         # Match pods with this label
+  template:                 # Pod template specification
+    metadata:
+      labels:
+        app: ace-echo       # Label applied to pods
+    spec:
+      containers:
+      - name: ace           # Container name
+        image: ibmcom/ace-server:latest   # ACE server image from IBM registry
+        ports:
+        - containerPort: 7800             # Expose port 7800 inside container
+        env:                              # Environment variables
+        - name: LICENSE
+          value: accept                   # Required to accept IBM license
+        - name: BAR_FILE
+          value: /home/aceuser/config/flows.bar   # Path to BAR file
+        - name: HTTP_USER
+          valueFrom:                      # Pull value from Secret
+            secretKeyRef:
+              name: ace-secrets
+              key: http-username
+        - name: HTTP_PASS
+          valueFrom:
+            secretKeyRef:
+              name: ace-secrets
+              key: http-password
+        volumeMounts:                     # Mount volumes into container
+        - name: ace-storage
+          mountPath: /home/aceuser/ace-server
+        - name: ace-bar
+          mountPath: /home/aceuser/config
+      volumes:                            # Define volumes
+      - name: ace-storage
+        persistentVolumeClaim:
+          claimName: ace-pvc              # Use the PVC defined earlier
+      - name: ace-bar
+        configMap:
+          name: ace-bar-config            # Mount ConfigMap as a file
+
+---
+# -------------------------------
+# 5. Service: exposes ACE pod to cluster
+# -------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: ace-echo-service    # Name of this Service
+spec:
+  selector:
+    app: ace-echo           # Target pods with this label
+  ports:
+    - protocol: TCP
+      port: 7800            # Service port
+      targetPort: 7800      # Forward to container port

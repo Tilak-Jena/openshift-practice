@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ace-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ace-server
+  template:
+    metadata:
+      labels:
+        app: ace-server
+    spec:
+      containers:
+      - name: ace-server
+        image: default-route-openshift-image-registry.apps-crc.testing/default/ace-server:demo
+        ports:
+        - containerPort: 7600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ace-server
+  namespace: default
+spec:
+  selector:
+    app: ace-server
+  ports:
+  - port: 7600
+    targetPort: 7600
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: ace-server
+  namespace: default
+spec:
+  to:
+    kind: Service
+    name: ace-server
+  port:
+    targetPort: 7600

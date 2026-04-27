@@ -1,0 +1,15 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: ace-http-echo-build
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/<your-repo-with-flow-and-Dockerfile>
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: ace-server:demo
