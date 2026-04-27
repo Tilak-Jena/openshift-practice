@@ -1,0 +1,13 @@
+# CLI binaries
+kubectl
+oc
+*.exe
+*.tar.gz
+
+# Certificates & keys
+*.crt
+*.key
+
+# OS files
+.DS_Store
+Thumbs.db
