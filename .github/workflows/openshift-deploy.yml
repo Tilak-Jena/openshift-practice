@@ -1,0 +1,23 @@
+name: OpenShift CRC Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify oc access
+        run: |
+          oc whoami
+          oc project || true
+
+      - name: Deploy to OpenShift (CRC)
+        run: |
+          oc apply -f nginx-deploy-with-configmap.yaml
