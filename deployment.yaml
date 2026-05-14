@@ -12,8 +12,17 @@ spec:
       labels:
         app: myapp
     spec:
-      containers:
-      - name: myapp
-        image: nginx:latest
-        ports:
-        - containerPort: 80
+      
+containers:
+  - name: nginx
+    image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+    ports:
+      - containerPort: 80
+
+
+    env:
+       - name: DB_USER
+       valueFrom:
+       secretKeyRef:
+       name: db-secret
+       key: username

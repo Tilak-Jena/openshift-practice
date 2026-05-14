@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-redis
+  namespace: argocd
+type: Opaque
+stringData:
+  redis-password: "changeme123"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-pull-secret
+  namespace: argocd
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: <base64-encoded-pull-secret>

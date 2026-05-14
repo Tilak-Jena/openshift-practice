@@ -11,3 +11,9 @@ oc
 # OS files
 .DS_Store
 Thumbs.db
+actions-runner//
+*.txt
+_work//
+.env
+.credentials
+

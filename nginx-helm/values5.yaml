@@ -1,0 +1,4 @@
+image:
+  repository: tilakjena/devops-app
+  tag: latest
+  pullPolicy: Always
