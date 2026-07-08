@@ -1,0 +1,26 @@
+
+CREATE COMPUTE MODULE JsonToXml
+
+CREATE FUNCTION Main() RETURNS BOOLEAN
+BEGIN
+
+  SET OutputRoot.Properties.MessageDomain = 'XMLNSC';
+
+  CREATE LASTCHILD OF OutputRoot
+      DOMAIN 'XMLNSC'
+      NAME 'Order';
+
+  SET OutputRoot.XMLNSC.Order.OrderId =
+      InputRoot.JSON.Data.order.orderId;
+
+  SET OutputRoot.XMLNSC.Order.Customer =
+      InputRoot.JSON.Data.order.customer;
+
+  SET OutputRoot.XMLNSC.Order.Amount =
+      InputRoot.JSON.Data.order.amount;
+
+  RETURN TRUE;
+
+END;
+
+END MODULE;
