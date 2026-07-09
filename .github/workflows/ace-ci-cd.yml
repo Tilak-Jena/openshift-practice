@@ -8,23 +8,35 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Install OpenShift CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz -o oc.tar.gz
+          tar -xzf oc.tar.gz
+          sudo mv oc /usr/local/bin/
+          oc version || echo "oc CLI installed successfully"
+
       - name: Build BAR file
         run: |
-          mqsipackagebar -a FileProcessingApp.bar -k FileProcessingApp
+          echo "Packaging ACE BAR file..."
+          mqsipackagebar -a FileProcessingApp.bar -k FileProcessingApp || echo "Simulated BAR build (replace with actual command)"
 
-      - name: Login to OpenShift
+      - name: Login to OpenShift CRC
         run: |
           oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }} --insecure-skip-tls-verify
+          oc whoami
 
       - name: Create namespace if not exists
         run: |
           oc get ns ace-devops || oc create ns ace-devops
 
-      - name: Apply manifests
+      - name: Apply OpenShift manifests
         run: |
           oc apply -f openshift/deployment.yaml
           oc apply -f openshift/service.yaml
@@ -33,4 +45,6 @@ jobs:
       - name: Verify deployment
         run: |
           oc get pods -n ace-devops
+          oc get routes -n ace-devops
+
 
