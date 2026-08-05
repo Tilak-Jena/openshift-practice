@@ -114,3 +114,4 @@ DevOps Engineer
 
 
 
+TriggerDevSecOps pipeline with Trivy scan test
