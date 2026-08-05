@@ -1,0 +1,26 @@
+- name: DevSecOps Trivy Scan
+  hosts: localhost
+  vars:
+    ansible_python_interpreter: /home/lenovo/.venvs/ansible/bin/python
+  tasks:
+    - name: Reset Trivy DB cache
+      command: trivy image --reset
+
+    - name: Scan Nginx image with Trivy (extended timeout)
+      command: trivy image --timeout 5m nginx:latest
+      register: trivy_output
+
+    - name: Save Trivy scan results
+      copy:
+        content: "{{ trivy_output.stdout }}"
+        dest: ./reports/trivy-nginx-report.txt
+
+    - name: Fail if CRITICAL vulnerabilities found
+      command: trivy image --severity CRITICAL --exit-code 1 --timeout 5m nginx:latest
+      ignore_errors: yes
+      register: critical_scan
+
+    - name: Stop pipeline if CRITICAL issues exist
+      fail:
+        msg: "CRITICAL vulnerabilities detected in nginx:latest"
+      when: critical_scan.rc == 1
