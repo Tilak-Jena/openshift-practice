@@ -24,14 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install ansible
 
-      - name: Install Trivy (latest release)
+      - name: Install Trivy (official script)
         run: |
           sudo apt-get update
           sudo apt-get install -y wget curl
-          LATEST=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep tag_name | cut -d '"' -f4)
-          wget https://github.com/aquasecurity/trivy/releases/download/${LATEST}/trivy_Linux-64bit.tar.gz
-          tar zxvf trivy_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh
           trivy --version
 
       - name: Build Docker image
