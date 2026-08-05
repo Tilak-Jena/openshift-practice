@@ -3,8 +3,8 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
   tasks:
-    - name: Reset Trivy DB cache
-      command: trivy image --reset
+    - name: Clean Trivy cache
+      command: trivy clean --all
 
     - name: Scan Nginx image with Trivy (extended timeout)
       command: trivy image --timeout 5m nginx:latest
